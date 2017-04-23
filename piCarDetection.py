@@ -40,7 +40,6 @@ def insert_spot_data(spotData):
             "ON DUPLICATE KEY UPDATE " \
             "spot_avail = VALUES(spot_avail)"
 
-	print MYSQL_USER
 	conn = MySQLdb.connect(host='35.190.143.237',user='root',passwd='rollins',db='tarveltparking')
 	cursor = conn.cursor()
 	cursor.executemany(query, spotData)
