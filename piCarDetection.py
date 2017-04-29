@@ -11,6 +11,7 @@ import MySQLdb
 res_y = 1088
 res_x = 1920
 
+#This is where we set up the regions of interest (ROI)
 spot_one_ROI = res_x // 4
 spot_two_ROI = spot_one_ROI * 2
 spot_three_ROI = spot_one_ROI * 3
@@ -23,6 +24,8 @@ cars_cascade = cv2.CascadeClassifier('anchor_cascade.xml')
 
 time.sleep(.3)
 
+
+#Set up table values for this specific CarDetector
 level = 'parkinglevel1'
 spot_one = 001
 spot_one_occupied = 0
@@ -34,7 +37,16 @@ spot_four = 004
 spot_four_occupied = 0
 pi_id = 0001
 
+
+
 def insert_spot_data(spotData):
+    '''
+    Inserts updated table values into its perspective table in the parking databased
+    
+    :param spotData: An array of tuples containing table values for each spot entry.
+    
+    :return: Nothing.
+    '''
 	query = "INSERT INTO " + level + " (spot_id,spot_avail,pi_id) " \
             "VALUES(%s,%s,%s)" \
             "ON DUPLICATE KEY UPDATE " \
@@ -61,8 +73,15 @@ def insert_spot_data(spotData):
 #
 #     cv2.imwrite('cars/' + uuid4(), data)
 
-
 def detect_cars(image_array):
+    '''
+    detects cars in spots by acknowledging when it can no longer see the detection symbol
+    spot occupied values are set to 1 innitially in case the lot is full and there are no detection images found
+    
+    :param image_array: the frame taken from the piCamera
+    :return: Nothing
+    '''
+
     cars = cars_cascade.detectMultiScale(image_array, scaleFactor=1.03,
                                          minNeighbors=0, maxSize=(120, 120))
     spot_one_occupied = 1
