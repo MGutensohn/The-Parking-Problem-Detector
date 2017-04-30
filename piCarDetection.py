@@ -47,31 +47,41 @@ def insert_spot_data(spotData):
     
     :return: Nothing.
     '''
-	query = "INSERT INTO " + level + " (spot_id,spot_avail,pi_id) " \
+    query = "INSERT INTO " + level + " (spot_id,spot_avail,pi_id) " \
             "VALUES(%s,%s,%s)" \
             "ON DUPLICATE KEY UPDATE " \
             "spot_avail = VALUES(spot_avail)"
 
-	conn = MySQLdb.connect(host='35.190.143.237',user='root',passwd='rollins',db='tarveltparking')
-	cursor = conn.cursor()
-	cursor.executemany(query, spotData)
-	conn.commit()
+    conn = MySQLdb.connect(host='35.190.143.237',user='root',passwd='rollins',db='tarveltparking')
+    cursor = conn.cursor()
+    cursor.executemany(query, spotData)
+    conn.commit()
 
 
-	cursor.close()
-	conn.close()
+    cursor.close()
+    conn.close()
 
-# def get_car_data(img, spot):
-#     if spot == spot_one:
-#         data = img[]
-#     elif spot == spot_two:
-#         data = img[]
-#     elif spot == spot_three:
-#         data = img[]
-#     else:
-#         data = img[]
-#
-#     cv2.imwrite('cars/' + uuid4(), data)
+def get_car_data(img, spot):
+    '''
+    captures an image of a car and saves it to the cars/ directory. From there it will be sent to a device specific
+    branch of a git repository hosted locally. Once there are enough images collected, a new training file will be
+    generate manually and the code will be updated to use the new file, thus ending the "training wheels" phase.
+    
+    
+    :param img: the frame being processed by detect_cars
+    :param spot: the spot a car has been detected in.
+    :return: nothing, saves in image to the cars/ directory
+    '''
+    if spot == spot_one:
+        data = img[165:570, 415:735]
+    elif spot == spot_two:
+        data = img[590:570, 840:735]
+    elif spot == spot_three:
+        data = img[995:570, 1245: 735]
+    else:
+        data = img[1445:570, 1695:735]
+
+    cv2.imwrite('cars/' + uuid4(), data)
 
 def detect_cars(image_array):
     '''
@@ -95,12 +105,19 @@ def detect_cars(image_array):
             spot_one_occupied = 0
         if x >= spot_one_ROI and x + w < spot_two_ROI:
             spot_two_occupied = 0
-        if x >= spot_two_ROI and x + w <= spot_three_ROI:
+        if x >= spot_two_ROI and x + w < spot_three_ROI:
             spot_three_occupied = 0
         if x >= spot_three_ROI:
             spot_four_occupied = 0
 
-
+    if spot_one_occupied == 1:
+        get_car_data(image_array, spot_one)
+    if spot_two_occupied == 1:
+        get_car_data(image_array, spot_two)
+    if spot_three_occupied == 1:
+        get_car_data(image_array, spot_three)
+    if spot_four_occupied == 1:
+        get_car_data(image_array, spot_four)
 
     spotData = [(spot_one, spot_one_occupied, pi_id),
                (spot_two, spot_two_occupied, pi_id),
@@ -110,10 +127,10 @@ def detect_cars(image_array):
 
 
 
-for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True): #captures a frame from the piCam
 
-    image = frame.array
-    detect_cars(image)
+    image = frame.array #converts frame to numpy array
+    detect_cars(image) #checkes numpy array for cars
 
 
     key = cv2.waitKey(1) & 0xFF
